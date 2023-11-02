@@ -5,3 +5,10 @@ lm_cache
 .idea
 
 *.egg-info/
+runs
+logs
+cache
+.vscode
+*.whl
+*.txt
+*.png
