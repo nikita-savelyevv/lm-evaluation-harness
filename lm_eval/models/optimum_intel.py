@@ -19,6 +19,7 @@ class OptimumIntelAutoCausalLM(BaseLM):
         batch_size=1,
         load_in_8bit: Optional[bool] = False,
         trust_remote_code: Optional[bool] = True,
+        precision=None
     ):
         super().__init__()
 
@@ -30,6 +31,8 @@ class OptimumIntelAutoCausalLM(BaseLM):
 
         revision = revision + ("/" + subfolder if subfolder is not None else "")
 
+        ov_config = {} if precision is None else {"INFERENCE_PRECISION_HINT": precision, "CACHE_DIR": ""}
+        print("Using the following OV config:", ov_config)
         # from optimum.intel.openvino import OVChatGLM2Model
         # self.model = OVChatGLM2Model.from_pretrained(
         self.model = OVModelForCausalLM.from_pretrained(
@@ -39,6 +42,7 @@ class OptimumIntelAutoCausalLM(BaseLM):
             use_cache=True,
             cache_dir="",
             device=device,
+            ov_config=ov_config
             # from_transformers=True,
         )
 
