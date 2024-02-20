@@ -11,7 +11,7 @@ a teacher who answers the questions by providing short excerpts (spans) from the
 Homepage: https://quac.ai/
 """
 import inspect
-import lm_eval.datasets.quac.quac
+import lm_eval.datasets2.quac.quac
 from lm_eval.base import Task
 
 
@@ -27,7 +27,7 @@ _CITATION = """
 
 class QuAC(Task):
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.quac.quac)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets2.quac.quac)
     DATASET_NAME = None
 
     def has_training_docs(self):

@@ -11,7 +11,7 @@ math, computer science, and philosophy papers.
 Homepage: https://pile.eleuther.ai/
 """
 import inspect
-import lm_eval.datasets.pile.pile
+import lm_eval.datasets2.pile.pile
 from lm_eval.base import PerplexityTask
 
 
@@ -27,7 +27,7 @@ _CITATION = """
 
 class PilePerplexityTask(PerplexityTask):
     VERSION = 1
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.pile.pile)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets2.pile.pile)
     DATASET_NAME = None
 
     def has_validation_docs(self):

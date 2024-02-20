@@ -18,7 +18,7 @@ Homepage: https://github.com/hendrycks/ethics
 import abc
 import random
 import inspect
-import lm_eval.datasets.hendrycks_ethics.hendrycks_ethics
+import lm_eval.datasets2.hendrycks_ethics.hendrycks_ethics
 import numpy as np
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, yesno
@@ -35,7 +35,7 @@ _CITATION = """
 
 
 class Ethics(Task):
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.hendrycks_ethics.hendrycks_ethics)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets2.hendrycks_ethics.hendrycks_ethics)
     DATASET_NAME = None
 
     def has_training_docs(self):

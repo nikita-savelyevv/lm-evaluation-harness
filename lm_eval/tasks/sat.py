@@ -8,7 +8,7 @@ multiple-choice analogy questions; 5 choices per question.
 Homepage: https://aclweb.org/aclwiki/SAT_Analogy_Questions_(State_of_the_art)
 """
 import inspect
-import lm_eval.datasets.sat_analogies.sat_analogies
+import lm_eval.datasets2.sat_analogies.sat_analogies
 from lm_eval.base import MultipleChoiceTask
 
 
@@ -28,7 +28,7 @@ _CITATION = """
 
 class SATAnalogies(MultipleChoiceTask):
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.sat_analogies.sat_analogies)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets2.sat_analogies.sat_analogies)
     DATASET_NAME = None
 
     def __init__(self, data_dir: str):

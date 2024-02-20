@@ -9,7 +9,7 @@ addition, or deletion of characters, and asking it to recover the original word.
 Homepage: https://github.com/openai/gpt-3/tree/master/data
 """
 import inspect
-import lm_eval.datasets.unscramble.unscramble
+import lm_eval.datasets2.unscramble.unscramble
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean
 
@@ -31,7 +31,7 @@ _CITATION = """
 
 class WordUnscrambleTask(Task):
     VERSION = 0
-    DATASET_PATH = inspect.getfile(lm_eval.datasets.unscramble.unscramble)
+    DATASET_PATH = inspect.getfile(lm_eval.datasets2.unscramble.unscramble)
     DATASET_NAME = None
 
     def has_training_docs(self):
