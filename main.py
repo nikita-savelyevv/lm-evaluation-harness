@@ -10,23 +10,18 @@ from time import time, sleep
 import random
 
 from lm_eval import evaluator
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from optimum.intel import OVModelForCausalLM
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
-import openvino.runtime as ov
 from openvino import Core
 import openvino
 from pathlib import Path
 core = Core()
 
 
-LOGS_DIR = Path("./logs_compress")
-
 def parse_args():
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--model", required=True)
+    parser.add_argument("--model", required=True)
     # parser.add_argument(
     #     "--tasks", default=None, choices=utils.MultiChoice(tasks.ALL_TASKS)
     # )
@@ -41,6 +36,7 @@ def parse_args():
     )
     parser.add_argument("--device", type=str, default='auto')
     parser.add_argument("--output_path", default=None)
+    parser.add_argument("--precision", type=str, default='fp32')
     parser.add_argument(
         "--limit",
         type=float,
@@ -70,8 +66,6 @@ class ExpDesc:
 def main():
     args = parse_args()
 
-    assert not args.provide_description  # not implemented
-
     if args.limit:
         print(
             "WARNING: --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT."
@@ -89,33 +83,13 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
-    use_pkv = True
     descs = [
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP16", device="cpu", precision="f32"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP16", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP16_calibrated_1.00", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP16_calibrated_1.00_softmax-mvn", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_calibrated_1.00", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP16_calibrated_1.00_all-except-add", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_calibrated_1.00_all", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_calibrated_1.00_ALL", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_calibrated_1.00_ALL_att2", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_bf16-inp", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_fp32-inp", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix2_calibrated_1.00", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix2_calibrated_1.00_all", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix3_calibrated_all", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32", device="cpu", precision="f32"),
-        # ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_calibrated_0.80_new_types", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix3_ops_att30", device="cpu", precision="bf16"),
-        ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix4_ops_att1", device="cpu", precision="bf16"),
-        ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix4_ops_att2", device="cpu", precision="bf16"),
-        ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix4_ops_att3", device="cpu", precision="bf16"),
-
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino_notebooks/notebooks/254-llm-chatbot/red-pajama-3b-chat/FP16", device="cpu", precision="bf16"),
-        # ExpDesc(model_path="/home/devuser/nsavelye/workspace/openvino_notebooks/notebooks/254-llm-chatbot/red-pajama-3b-chat/FP16", device="cpu", precision="f32"),
+        ExpDesc(model_path=args.model, device=args.device, precision=args.precision)
     ]
+
+    # descs = [
+    #     ExpDesc(model_path="/dev/data/nsavelye/workspace/openvino.genai/llm_bench/python/gpt-neox-20b/fp16/pytorch/dldt/FP32_ov-fix4_ops_att1", device="cpu", precision="bf16"),
+    # ]
 
     all_results_paths = []
     for desc in descs:
